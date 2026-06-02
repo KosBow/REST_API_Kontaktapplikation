@@ -1,7 +1,4 @@
-from re import match
-
 from fastapi import FastAPI, HTTPException
-from fastapi.openapi.models import Contact
 
 from models import *
 from datetime import datetime
@@ -10,6 +7,10 @@ app = FastAPI()
 
 contacts_db = []
 next_id = 1
+
+@app.get("/")
+def root():
+    return {"message": "Gå till http://127.0.0.1:8000/docs"}
 
 @app.post("/contacts", response_model=ContactResponse)
 def create_contact(contact: ContactCreate):
@@ -36,6 +37,22 @@ def create_contact(contact: ContactCreate):
 def read_contact():
     return contacts_db
 
+@app.get("/contacts/search", response_model=List[ContactResponse])
+def search_contacts(search: str):
+
+    results = []
+
+    for contact in contacts_db:
+
+        if (
+            search.lower() in contact["fornamn"].lower()
+            or
+            search.lower() in contact["efternamn"].lower()
+        ):
+            results.append(contact)
+
+    return results
+
 @app.get("/contacts/{contact_id}", response_model=ContactResponse)
 def read_contact(contact_id: int):
     for contact in contacts_db:
@@ -46,13 +63,34 @@ def read_contact(contact_id: int):
 
 @app.put("/contacts/{contact_id}", response_model=ContactResponse)
 def update_contact(contact_id: int, contact: ContactUpdate):
+
     for existing_contact in contacts_db:
+
         if existing_contact["id"] == contact_id:
-            existing_contact["fornamn"] = contact.fornamn
+
+            if contact.fornamn is not None:
+                existing_contact["fornamn"] = contact.fornamn
+
+            if contact.efternamn is not None:
+                existing_contact["efternamn"] = contact.efternamn
+
+            if contact.kontaktvagar is not None:
+                existing_contact["kontaktvagar"] = contact.kontaktvagar
+
+            if contact.adresser is not None:
+                existing_contact["adresser"] = contact.adresser
+
+            if contact.ovrig_information is not None:
+                existing_contact["ovrig_information"] = contact.ovrig_information
+
+            existing_contact["uppdaterad_datum"] = datetime.now()
 
             return existing_contact
 
-    raise HTTPException(status_code=404, detail="Kontakt hittades inte")
+    raise HTTPException(
+        status_code=404,
+        detail="Kontakt hittades inte"
+    )
 
 @app.delete("/contacts/{contact_id}")
 def delete_contact(contact_id: int):
