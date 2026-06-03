@@ -34,8 +34,20 @@ def create_contact(contact: ContactCreate):
     return new_contact
 
 @app.get("/contacts", response_model=List[ContactResponse])
-def read_contact():
-    return contacts_db
+def read_contact(search: str | None = None):
+
+    if search is None:
+        return contacts_db
+
+    results = []
+
+    for contact in contacts_db:
+        fornamn = contact["fornamn"]
+
+        if search.lower() in fornamn.lower():
+            results.append(contact)
+
+    return results
 
 @app.get("/contacts/search", response_model=List[ContactResponse])
 def search_contacts(search: str):
