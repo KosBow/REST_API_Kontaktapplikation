@@ -43,8 +43,12 @@ def read_contact(search: str | None = None):
 
     for contact in contacts_db:
         fornamn = contact["fornamn"]
+        efternamn = contact["efternamn"]
 
-        if search.lower() in fornamn.lower():
+        if (
+                search.lower() in fornamn.lower()
+                or search.lower() in efternamn.lower()
+        ):
             results.append(contact)
 
     return results
