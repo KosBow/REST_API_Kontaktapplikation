@@ -1,11 +1,25 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from datetime import datetime
+import re
 
 
 class ContactMethod(BaseModel):
     typ: str
     varde: str
+
+    @field_validator("varde")
+    @classmethod
+    def validate_email(cls, value, info):
+
+        if info.data.get("typ") == "email":
+
+            email_pattern = r"^[^@]+@[^@]+\.[^@]+$"
+
+            if not re.match(email_pattern, value):
+                raise ValueError("Ogiltig e-postadress")
+
+        return value
 
 
 class Address(BaseModel):
